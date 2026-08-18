@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remediation harness — governance dashboard</title>
+<style>
+  /* Light is the base; dark is a selected set of steps, not an automatic flip. */
+  :root {
+    color-scheme: light;
+    --plane:      #f9f9f7;
+    --surface:    #fcfcfb;
+    --line:       #e3e2dd;
+    --ink:        #0b0b0b;
+    --ink-2:      #52514e;
+    --ink-3:      #7c7a74;
+    --accent:     #2a78d6;   /* in progress */
+    --good:       #0ca30c;   /* closed */
+    --warning:    #fab219;   /* exception - needs a human */
+    --critical:   #d03b3b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --plane: #0d0d0d; --surface: #1a1a19; --line: #34332f;
+      --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8d8b82;
+      --accent: #3987e5; --good: #0ca30c; --warning: #fab219; --critical: #d03b3b;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --plane: #0d0d0d; --surface: #1a1a19; --line: #34332f;
+    --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8d8b82;
+    --accent: #3987e5; --good: #0ca30c; --warning: #fab219; --critical: #d03b3b;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 28px 24px 64px;
+    background: var(--plane); color: var(--ink);
+    font: 14px/1.5 ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+  h1 { font-size: 19px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-3); font-size: 13px; }
+  .readonly {
+    margin-left: auto; font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--ink-3); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px;
+  }
+
+  section { margin-top: 28px; }
+  h2 {
+    font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-3); margin: 0 0 10px;
+  }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+  .grid { display: grid; gap: 12px; }
+  .hero { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+  .kpis { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+
+  .stat .label { font-size: 12px; color: var(--ink-2); }
+  .stat .value {
+    font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat .value.small { font-size: 22px; }
+  .stat .note { font-size: 12px; color: var(--ink-3); margin-top: 3px; }
+
+  /* funnel: magnitude is bar LENGTH. one hue for in-progress; status colors are
+     reserved for the two states that mean something to a human. */
+  .bar-row { display: grid; grid-template-columns: 92px 1fr 46px; align-items: center; gap: 10px; margin: 7px 0; }
+  .bar-row .name { font-size: 13px; color: var(--ink-2); text-align: right; }
+  .bar-track { background: var(--plane); border-radius: 4px; height: 20px; overflow: hidden; }
+  .bar { height: 100%; border-radius: 4px; background: var(--accent); }
+  .bar[data-v='0'] { background: none; }   /* zero is zero, not a stub */
+  .bar.good { background: var(--good); }
+  .bar.warn { background: var(--warning); }
+  .bar-row .n { font-variant-numeric: tabular-nums; text-align: right; color: var(--ink-2); font-size: 13px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left; font-weight: 600; font-size: 11px; letter-spacing: .05em;
+    text-transform: uppercase; color: var(--ink-3); padding: 0 10px 8px 0;
+    border-bottom: 1px solid var(--line); white-space: nowrap;
+  }
+  td { padding: 8px 10px 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; }
+  .num { font-variant-numeric: tabular-nums; text-align: right; }
+  .scroll { overflow-x: auto; }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 12px;
+    padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line);
+    color: var(--ink-2); white-space: nowrap;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none; }
+  .pill.closed .dot { background: var(--good); }
+  .pill.exception { border-color: var(--warning); color: var(--ink); }
+  .pill.exception .dot { background: var(--warning); }
+
+  .why { color: var(--ink-3); font-size: 12px; }
+  footer { margin-top: 36px; color: var(--ink-3); font-size: 12px; }
+  code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; }
+  .problem { color: var(--critical); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Remediation harness</h1>
+    <span class="sub" id="runline">loading…</span>
+    <span class="readonly" title="This server implements GET and nothing else. There is no code path that changes a finding.">read-only</span>
+  </header>
+
+  <section>
+    <div class="grid hero" id="hero"></div>
+  </section>
+
+  <section>
+    <h2>Pipeline</h2>
+    <div class="card" id="funnel"></div>
+  </section>
+
+  <section>
+    <h2>Programme KPIs</h2>
+    <div class="grid kpis" id="kpis"></div>
+  </section>
+
+  <section>
+    <h2>Exception queue <span class="sub" id="queueage"></span></h2>
+    <div class="card scroll" id="queue"></div>
+  </section>
+
+  <section>
+    <h2>Remediation families</h2>
+    <div class="card scroll" id="clusters"></div>
+  </section>
+
+  <section>
+    <h2>Findings</h2>
+    <div class="card scroll" id="findings"></div>
+  </section>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+const STAGES = ["new", "triaged", "proposed", "approved", "validated", "closed"];
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const n = v => (v === null || v === undefined) ? "—" : v;
+const pct = v => (v === null || v === undefined) ? "—" : v + "%";
+
+function stat(label, value, note, small) {
+  return `<div class="card stat"><div class="label">${esc(label)}</div>
+    <div class="value${small ? " small" : ""}">${esc(value)}</div>
+    ${note ? `<div class="note">${esc(note)}</div>` : ""}</div>`;
+}
+
+function pill(status) {
+  const cls = status === "closed" ? "closed" : status === "exception" ? "exception" : "";
+  const icon = status === "exception" ? "&#9888; " : "";   // status colour never travels alone
+  return `<span class="pill ${cls}"><span class="dot"></span>${icon}${esc(status)}</span>`;
+}
+
+fetch("data.json").then(r => r.json()).then(d => {
+  const m = d.metrics || {}, k = m.kpi || {}, t = m.totals || {};
+  const by = t.by_status || {};
+  document.getElementById("runline").textContent =
+    `${d.run} · ${t.findings ?? 0} findings · generated ${m.generated_at || "—"}`;
+
+  // hero
+  document.getElementById("hero").innerHTML =
+      stat("Findings ingested", t.findings ?? 0,
+           `${(t.clusters||{}).count ?? "—"} remediation families (${(t.clusters||{}).collapsed ?? 0} folded in)`)
+    + stat("High findings closed", `${(k.burn_down||{}).high_closed ?? 0} / ${(k.burn_down||{}).high_total ?? 0}`,
+           pct((k.burn_down||{}).percent_closed) + " of the high backlog")
+    + stat("Awaiting a human", (k.exception_queue||{}).size ?? 0,
+           `mean age ${n((k.exception_queue||{}).mean_age_days)} days`);
+
+  // funnel — bar length is the magnitude; colour marks only the two states a human cares about
+  const max = Math.max(1, ...STAGES.concat(["exception"]).map(s => by[s] || 0));
+  document.getElementById("funnel").innerHTML = STAGES.concat(["exception"]).map(s => {
+    const v = by[s] || 0;
+    const cls = s === "closed" ? "good" : s === "exception" ? "warn" : "";
+    return `<div class="bar-row"><div class="name">${esc(s)}</div>
+      <div class="bar-track"><div class="bar ${cls}" data-v="${v}" style="width:${(v / max * 100).toFixed(1)}%"></div></div>
+      <div class="n">${v}</div></div>`;
+  }).join("") + `<div class="why" style="margin-top:10px">Counts are current status, not cumulative flow —
+      a finding appears in exactly one row. Full history is in <code>audit.jsonl</code>.</div>`;
+
+  // the seven KPIs the spec names, each derived from audit.jsonl
+  const q = k.exception_queue || {}, mev = m.model_evaluation || {};
+  document.getElementById("kpis").innerHTML =
+      stat("1 · Cycle time", n((k.cycle_time||{}).overall_hours) + " h",
+           "created → closed, average", true)
+    + stat("2 · Burn-down", pct((k.burn_down||{}).percent_closed),
+           `${(k.burn_down||{}).high_open ?? 0} high still open`, true)
+    + stat("3 · Rework rate", n((k.rework_rate||{}).rate),
+           `${(k.rework_rate||{}).rejections ?? 0} of ${(k.rework_rate||{}).proposals ?? 0} proposals sent back`, true)
+    + stat("4 · Repeatability", n((k.repeatability||{}).share),
+           `${(k.repeatability||{}).with_pattern ?? 0} of ${(k.repeatability||{}).closed ?? 0} closures reused a pattern`, true)
+    + stat("5 · Recurrence", (k.recurrence||{}).reopened ?? 0,
+           "findings reopened after closure", true)
+    + stat("6 · Evidence completeness", pct((k.evidence_completeness||{}).percent),
+           "closures whose sealed hashes still verify", true)
+    + stat("7 · Exception queue", `${q.size ?? 0} · ${n(q.mean_age_days)} d`,
+           `oldest ${n(q.oldest_days)} days`, true)
+    + stat("Model evaluation", n(mev.mean_confidence),
+           `mean triage confidence · ${mev.sent_to_manual_triage ?? 0} sent to manual triage`, true);
+
+  // exception queue, grouped by reason — the governance lead's view
+  const reasons = Object.entries(q.by_reason || {});
+  document.getElementById("queueage").textContent =
+    q.size ? `— ${q.size} item${q.size === 1 ? "" : "s"}, mean age ${n(q.mean_age_days)} days` : "— empty";
+  const lastReason = {};
+  (d.audit || []).forEach(e => { if (e.to === "exception") lastReason[e.finding_id] = e.reason; });
+  const excepted = (d.findings || []).filter(f => f.status === "exception");
+  document.getElementById("queue").innerHTML = excepted.length
+    ? `<table><thead><tr><th>Finding</th><th>Severity</th><th>Category</th><th>Why it is here</th></tr></thead><tbody>`
+      + excepted.map(f => `<tr><td class="mono">${esc(f.finding_id)}</td><td>${esc(f.severity)}</td>
+          <td>${esc(f.category || "unclassified")}</td>
+          <td class="why">${esc(lastReason[f.finding_id] || "—")}</td></tr>`).join("")
+      + `</tbody></table>`
+      + (reasons.length ? `<div class="why" style="margin-top:10px">By reason: `
+          + reasons.map(([r, c]) => `${esc(r)} (${c})`).join(" · ") + `</div>` : "")
+    : `<div class="why">Nothing is waiting on a human.</div>`;
+
+  // clusters
+  const cl = Object.entries((d.clusters || {}).clusters || {});
+  document.getElementById("clusters").innerHTML = cl.length
+    ? `<table><thead><tr><th>Family</th><th class="num">Members</th><th>CWE</th><th>Fix this one first</th><th>Members</th></tr></thead><tbody>`
+      + cl.map(([id, c]) => `<tr><td class="mono">${esc(id)}</td><td class="num">${c.size}</td>
+          <td>${esc((c.cwe || []).join(", ") || "—")}</td>
+          <td class="mono">${esc(c.lead_finding)}</td>
+          <td class="mono why">${esc((c.members || []).join(" "))}</td></tr>`).join("")
+      + `</tbody></table><div class="why" style="margin-top:10px">A validated fix on the lead is
+         <em>suggested</em> to the rest of its family. Each is still triaged, approved and validated
+         on its own — a family is a similarity claim, not a proof.</div>`
+    : `<div class="why">Not clustered yet.</div>`;
+
+  // findings
+  document.getElementById("findings").innerHTML =
+    `<table><thead><tr><th>ID</th><th>Status</th><th>Sev</th><th>Category</th><th class="num">Conf.</th>
+      <th>Family</th><th>Pattern</th><th>Location</th><th>Approver</th></tr></thead><tbody>`
+    + (d.findings || []).map(f => `<tr>
+        <td class="mono">${esc(f.finding_id)}</td>
+        <td>${pill(f.status)}</td>
+        <td>${esc(f.severity)}</td>
+        <td>${esc(f.category || "—")}</td>
+        <td class="num">${f.confidence_score == null ? "—" : f.confidence_score.toFixed(2)}</td>
+        <td class="mono">${esc(f.cluster_id || "—")}</td>
+        <td class="mono why">${esc(f.matched_pattern_id || "generated fresh")}</td>
+        <td class="mono why">${esc((f.location || {}).file || "")}:${esc((f.location || {}).line ?? "")}</td>
+        <td class="why">${esc(f.approver || "—")}</td></tr>`).join("")
+    + `</tbody></table>`;
+
+  const problems = m.audit_problems || [];
+  document.getElementById("footer").innerHTML = problems.length
+    ? `<span class="problem">&#9888; ${problems.length} audit problem(s): ${esc(problems.join("; "))}</span>`
+    : `Audit chain verified: every status in this run is reachable by a logged transition
+       with an actor, a timestamp and a reason. This page reads that log; it cannot write to it.`;
+}).catch(e => {
+  document.getElementById("runline").textContent = "could not load data.json: " + e;
+});
+</script>
+</body>
+</html>
