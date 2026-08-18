@@ -1,0 +1,12 @@
+runs/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+target/
+build/
+.venv/
+venv/
+.DS_Store
+.idea/
+.vscode/
+*.pdf

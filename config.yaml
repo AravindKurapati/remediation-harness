@@ -1,0 +1,22 @@
+# Harness configuration.
+
+id_prefix: FND          # findings are numbered FND-000001, traceable to the client
+
+# Which comes first: the reviewer's signature, or the CI gates?
+#
+#   spec           approve -> validate.  The spec's order: a Security Reviewer signs
+#                  off on the proposal, then CI proves it. This is the default because
+#                  it is what the client asked for.
+#
+#   validate-first validate -> approve.  Only proposals that already passed their gates
+#                  reach a reviewer. Cheaper on reviewer time, which the spec's own
+#                  Open Questions names as the programme's top risk — but it is a
+#                  change to the client's workflow, so it is opt-in and not the default.
+gate_order: spec
+
+# --auto-review lets the advisory model verdict stand in for a human so an unattended
+# demo can run the whole pipeline. It is off, and it must stay off anywhere real.
+# Every approval it makes is logged with actor `demo:auto-review`, never a person.
+allow_auto_review: true
+
+model: claude-opus-5

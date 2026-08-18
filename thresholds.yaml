@@ -1,0 +1,27 @@
+# Confidence floors for AI triage.
+#
+# The spec is explicit that one global number is wrong: "calibrated per vulnerability
+# category and portfolio, not globally; a threshold tuned on simple quick-win findings
+# is not assumed to generalize to more complex categories or codebases."
+#
+# Most specific wins: portfolio+category, then portfolio default, then category, then
+# the global default. Below the floor, a finding goes to manual triage. It is never
+# auto-classified at lower confidence.
+
+default: 0.75
+
+categories:
+  secrets: 0.60          # a hardcoded credential is unambiguous; the model is rarely wrong
+  injection: 0.75
+  dependency: 0.70       # a version comparison, not a judgement about semantics
+  access-control: 0.85   # needs whole-application context the model cannot see from one file
+  crypto: 0.80
+  other: 0.90            # if it did not fit a category, a human should look
+
+portfolios:
+  clearing:
+    default: 0.85        # settlement path: the cost of a wrong auto-classification is highest
+    categories:
+      access-control: 0.90
+  reporting:
+    default: 0.70

@@ -1,0 +1,20 @@
+# Identity -> persona. `roles.py` decides what each persona may do.
+#
+# An identity that is not listed here has NO persona and every transition it attempts
+# is refused. Roles are not defaulted: defaulting a role is how an approval gate
+# quietly stops being one.
+
+personas:
+  security_reviewer:
+    - priya.raman@example.com
+    - demo:auto-review          # the unattended-demo identity; see config.yaml
+
+  portfolio_owner:
+    - sam.okafor@example.com
+    - demo:auto-review
+
+  governance_lead:
+    - dana.whitfield@example.com
+
+  audit_viewer:
+    - external.auditor@example.com

@@ -1,0 +1,42 @@
+# The repositories the harness can remediate, and the commands it runs against each.
+#
+# The harness runs the PROJECT'S OWN build and test commands. It does not invent a
+# build, install a toolchain, or edit a build file. A command left blank means that
+# `-v` on the test gate is deliberate: the harness checks that the NEW regression
+# test actually appears in the output, and `-q` prints dots instead of names.
+# gate records `unavailable` — which blocks closure, and never counts as a pass.
+#
+# {harness} {repo} {workspace} {file} {rule} are substituted per finding by
+# s7_validate, so the re-scan checks THIS finding's rule at THIS finding's line.
+# The flagged line's TEXT arrives in $RH_SNIPPET, not on the command line -
+# it is scanner output and must never be shell-quoted.
+
+targets:
+  py-ledger:
+    root: samples/py-ledger
+    portfolio: reporting
+    build:  python -m compileall -q ledger
+    test:   python -m pytest -v
+    rescan: python {harness}/tools/rescan.py --rules {repo}/rules.yaml --before {repo} --after {workspace} --file {file} --rule {rule}
+    test_path: tests/test_regression.py
+
+  java-orders:
+    root: samples/java-orders
+    portfolio: clearing
+    build:  mvn -B -DskipTests package
+    test:   mvn -B test
+    rescan: python {harness}/tools/rescan.py --rules {repo}/rules.yaml --before {repo} --after {workspace} --file {file} --rule {rule}
+    test_path: src/test/java/com/example/orders/RegressionTest.java
+
+  # Same repository as py-ledger, but the re-scan gate names a scanner that is not
+  # installed. Use it to see the rule the whole evidence contract rests on: a gate
+  # whose tool is missing records `unavailable`, which is NOT a pass, and the finding
+  # reaches no closure. Two gates genuinely passed and the finding still does not
+  # close - that is the harness refusing to write a receipt it cannot back.
+  py-ledger-strict:
+    root: samples/py-ledger
+    portfolio: clearing
+    build:  python -m compileall -q ledger
+    test:   python -m pytest -v
+    rescan: semgrep --config p/python --json {workspace}
+    test_path: tests/test_regression.py
