@@ -1,0 +1,12 @@
+# Scanner rules for the java-orders target. `tools/rescan.py` re-runs exactly these.
+rules:
+  - id: java.sqli.string-concat-into-statement
+    cwe: CWE-89
+    severity: error
+    message: "Untrusted value concatenated into a SQL statement"
+    pattern: 'String\s+query\s*=\s*"[^"]*(?:SELECT|INSERT|UPDATE|DELETE)[^"]*"\s*\+'
+  - id: java.secrets.hardcoded-credential
+    cwe: CWE-798
+    severity: error
+    message: "Credential literal in source"
+    pattern: '(?i)(password|secret|token)\s*=\s*"[^"]{8,}"'

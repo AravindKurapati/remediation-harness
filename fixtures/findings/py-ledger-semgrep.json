@@ -1,0 +1,149 @@
+{
+  "version": "1.99.0",
+  "results": [
+    {
+      "check_id": "py.sqli.string-concat-into-execute",
+      "path": "ledger/db.py",
+      "start": {
+        "line": 39,
+        "col": 1
+      },
+      "end": {
+        "line": 39,
+        "col": 88
+      },
+      "extra": {
+        "message": "Untrusted value concatenated into a SQL statement",
+        "severity": "ERROR",
+        "lines": "query = \"SELECT id, name, status, balance FROM accounts WHERE name = '\" + name + \"'\"",
+        "metadata": {
+          "cwe": [
+            "CWE-89: Untrusted value concatenated into a SQL statement"
+          ],
+          "category": "security"
+        }
+      }
+    },
+    {
+      "check_id": "py.sqli.string-concat-into-execute",
+      "path": "ledger/db.py",
+      "start": {
+        "line": 48,
+        "col": 1
+      },
+      "end": {
+        "line": 48,
+        "col": 91
+      },
+      "extra": {
+        "message": "Untrusted value concatenated into a SQL statement",
+        "severity": "ERROR",
+        "lines": "query = \"SELECT id, account, symbol, qty FROM trades WHERE account = '\" + account + \"'\"",
+        "metadata": {
+          "cwe": [
+            "CWE-89: Untrusted value concatenated into a SQL statement"
+          ],
+          "category": "security"
+        }
+      }
+    },
+    {
+      "check_id": "py.sqli.string-concat-into-execute",
+      "path": "ledger/db.py",
+      "start": {
+        "line": 57,
+        "col": 1
+      },
+      "end": {
+        "line": 57,
+        "col": 84
+      },
+      "extra": {
+        "message": "Untrusted value concatenated into a SQL statement",
+        "severity": "ERROR",
+        "lines": "query = \"SELECT id, name, status, balance FROM accounts ORDER BY \" + sort_column",
+        "metadata": {
+          "cwe": [
+            "CWE-89: Untrusted value concatenated into a SQL statement"
+          ],
+          "category": "security"
+        }
+      }
+    },
+    {
+      "check_id": "py.secrets.hardcoded-credential",
+      "path": "ledger/db.py",
+      "start": {
+        "line": 11,
+        "col": 1
+      },
+      "end": {
+        "line": 11,
+        "col": 36
+      },
+      "extra": {
+        "message": "Credential literal in source",
+        "severity": "ERROR",
+        "lines": "DB_PASSWORD = \"Tr4d3S3ttl3m3nt!2026\"",
+        "metadata": {
+          "cwe": [
+            "CWE-798: Credential literal in source"
+          ],
+          "category": "security"
+        }
+      }
+    },
+    {
+      "check_id": "py.secrets.hardcoded-credential",
+      "path": "ledger/db.py",
+      "start": {
+        "line": 12,
+        "col": 1
+      },
+      "end": {
+        "line": 12,
+        "col": 79
+      },
+      "extra": {
+        "message": "Credential literal in source",
+        "severity": "ERROR",
+        "lines": "DB_DSN = \"postgresql://ledger_svc:Tr4d3S3ttl3m3nt!2026@db.internal:5432/ledger\"",
+        "metadata": {
+          "cwe": [
+            "CWE-798: Credential literal in source"
+          ],
+          "category": "security"
+        }
+      }
+    },
+    {
+      "check_id": "py.crypto.weak-hash",
+      "path": "ledger/db.py",
+      "start": {
+        "line": 63,
+        "col": 1
+      },
+      "end": {
+        "line": 63,
+        "col": 53
+      },
+      "extra": {
+        "message": "Weak hash function",
+        "severity": "WARNING",
+        "lines": "return hashlib.md5(password.encode()).hexdigest()",
+        "metadata": {
+          "cwe": [
+            "CWE-327: Weak hash function"
+          ],
+          "category": "security"
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "paths": {
+    "scanned": [
+      "ledger/db.py"
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+# The scanner rules this target is scanned with. `tools/rescan.py` re-runs exactly
+# these after a patch, so the re-scan gate checks the originating rule specifically.
+rules:
+  - id: py.sqli.string-concat-into-execute
+    cwe: CWE-89
+    severity: error
+    message: "Untrusted value concatenated into a SQL statement"
+    pattern: 'query\s*=\s*"[^"]*(?:SELECT|INSERT|UPDATE|DELETE)[^"]*"\s*\+'
+  - id: py.secrets.hardcoded-credential
+    cwe: CWE-798
+    severity: error
+    message: "Credential literal in source"
+    pattern: '(?i)(password|dsn|secret)\s*=\s*"[^"]{8,}"'
+  - id: py.crypto.weak-hash
+    cwe: CWE-327
+    severity: warning
+    message: "Weak hash function"
+    pattern: 'hashlib\.(md5|sha1)\('
