@@ -1,0 +1,65 @@
+{
+  "patterns": [
+    {
+      "approved_by": "security-engineering",
+      "category": "injection",
+      "cwe": "CWE-89",
+      "extensions": [
+        "py"
+      ],
+      "frameworks": [
+        "sqlite3",
+        "psycopg2",
+        "pymysql"
+      ],
+      "id": "sqli-python-concat-to-parameterized",
+      "path": "patterns/sqli-python-concat-to-parameterized.md",
+      "provenance": [],
+      "reuse_count": 0,
+      "sink_apis": [
+        "execute",
+        "executemany",
+        "cursor.execute"
+      ],
+      "status": "approved",
+      "tags": [
+        "sql",
+        "select",
+        "where",
+        "concat",
+        "injection"
+      ],
+      "title": "Python: string-concatenated SQL to a parameterized statement"
+    },
+    {
+      "approved_by": "security-engineering",
+      "category": "injection",
+      "cwe": "CWE-89",
+      "extensions": [
+        "py"
+      ],
+      "frameworks": [
+        "sqlite3",
+        "psycopg2",
+        "pymysql"
+      ],
+      "id": "sqli-python-identifier-allowlist",
+      "path": "patterns/sqli-python-identifier-allowlist.md",
+      "provenance": [],
+      "reuse_count": 0,
+      "sink_apis": [
+        "execute"
+      ],
+      "status": "approved",
+      "tags": [
+        "sql",
+        "order by",
+        "group by",
+        "identifier",
+        "injection"
+      ],
+      "title": "Python: dynamic identifier in SQL to an allowlist"
+    }
+  ],
+  "rejections": []
+}
