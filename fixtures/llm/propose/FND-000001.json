@@ -1,0 +1,11 @@
+{
+  "diff": "--- a/ledger/db.py\n+++ b/ledger/db.py\n@@ -36,8 +36,8 @@\n \n def find_account_by_name(conn, name):\n     \"\"\"FINDING: SQL injection (CWE-89) - untrusted name concatenated into the query.\"\"\"\n-    query = \"SELECT id, name, status, balance FROM accounts WHERE name = '\" + name + \"'\"\n-    return conn.execute(query).fetchall()\n+    query = \"SELECT id, name, status, balance FROM accounts WHERE name = ?\"\n+    return conn.execute(query, (name,)).fetchall()\n \n \n def find_trades_by_account(conn, account):\n",
+  "pattern_id": "sqli-python-concat-to-parameterized",
+  "test_name": "test_quote_in_name_is_data_not_syntax",
+  "explanation": "Replaced the concatenation with a `?` placeholder and passed `name` as a parameter. The driver now sends the statement and the data separately, so no input can alter the statement's structure. Nothing else changed.",
+  "left_alone": [
+    "find_trades_by_account has the same defect and is tracked as FND-000002",
+    "list_accounts_sorted is an identifier injection and needs a different fix"
+  ],
+  "test_source": "\"\"\"Regression test for FND-000001 - SQL injection in find_account_by_name.\n\nBoth tests must FAIL against the unpatched code, for two different reasons. That is\nwhat makes them proof rather than decoration.\n\"\"\"\n\nfrom ledger import db\n\n\ndef conn():\n    return db.bootstrap(db.connect())\n\n\ndef test_quote_in_name_is_data_not_syntax():\n    \"\"\"Unpatched, the payload closes the quote and matches every row.\"\"\"\n    assert db.find_account_by_name(conn(), \"' OR '1'='1\") == []\n\n\ndef test_legitimate_quote_still_matches():\n    \"\"\"Unpatched, this raises an OperationalError. A fix that strips quotes instead of\n    parameterizing would break every customer whose name contains one.\"\"\"\n    rows = db.find_account_by_name(conn(), \"O'Brien Holdings\")\n    assert len(rows) == 1 and rows[0][\"balance\"] == 250\n"
+}

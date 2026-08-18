@@ -1,0 +1,7 @@
+{
+  "category": "secrets",
+  "cwe": "CWE-798",
+  "root_cause": "A PostgreSQL DSN with inline credentials is a module-level literal. Same secret as DB_PASSWORD, embedded in a connection string.",
+  "confidence_score": 0.95,
+  "reasoning": "Credentials inline in a URI. Note this redacts to the same token as FND-000004, so the two are the same secret in two places and one rotation clears both."
+}

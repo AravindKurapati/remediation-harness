@@ -1,0 +1,5 @@
+{
+  "verdict": "approve",
+  "objections": [],
+  "reasoning": "The concatenation is gone and the value is bound as a parameter, which is the approved transform rather than an escaping workaround. The second test covers the regression an over-eager quote-stripping fix would cause, and both related findings are named in left_alone."
+}

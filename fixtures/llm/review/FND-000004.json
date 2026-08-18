@@ -1,0 +1,5 @@
+{
+  "verdict": "approve",
+  "objections": [],
+  "reasoning": "Both credentials move to the environment and the test asserts a property of the source file rather than of a function, which is the only thing that actually proves the literal is gone. The patch is explicit that rotation and git history are outside what it can do, which is the honest scope."
+}

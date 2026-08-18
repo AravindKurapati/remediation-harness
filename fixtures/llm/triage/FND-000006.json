@@ -1,0 +1,7 @@
+{
+  "category": "crypto",
+  "cwe": "CWE-327",
+  "root_cause": "password_digest uses MD5 without a salt. If this hashes authentication credentials it is a real weakness; if it is a cache key or a content checksum it is not.",
+  "confidence_score": 0.58,
+  "reasoning": "I cannot see any caller of password_digest in the code I was given, so I cannot tell whether this is an authentication path or a non-security digest. The function name suggests the former; the absence of callers suggests it may be dead. This needs a human who knows the service."
+}

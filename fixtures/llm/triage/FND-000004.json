@@ -1,0 +1,7 @@
+{
+  "category": "secrets",
+  "cwe": "CWE-798",
+  "root_cause": "A database password is a module-level string literal in ledger/db.py, so it is in source control and readable by anyone with repository access.",
+  "confidence_score": 0.96,
+  "reasoning": "A literal assigned to a name ending in PASSWORD. The value is already redacted in the finding I was given, which is itself the confirmation that the redactor classified it as a credential."
+}

@@ -1,0 +1,5 @@
+{
+  "verdict": "approve",
+  "objections": [],
+  "reasoning": "Identical transform to FND-000001 on the trades query, correctly reusing the same approved pattern. The regression test asserts the payload is treated as data and that a legitimate apostrophe still matches."
+}

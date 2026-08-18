@@ -1,0 +1,10 @@
+{
+  "diff": "--- a/ledger/db.py\n+++ b/ledger/db.py\n@@ -45,8 +45,8 @@\n \n     This one exists so clustering has something real to collapse: same rule, same\n     file, same shape as find_account_by_name.\"\"\"\n-    query = \"SELECT id, account, symbol, qty FROM trades WHERE account = '\" + account + \"'\"\n-    return conn.execute(query).fetchall()\n+    query = \"SELECT id, account, symbol, qty FROM trades WHERE account = ?\"\n+    return conn.execute(query, (account,)).fetchall()\n \n \n def list_accounts_sorted(conn, sort_column):\n",
+  "pattern_id": "sqli-python-concat-to-parameterized",
+  "test_name": "test_quote_in_account_is_data_not_syntax",
+  "explanation": "The same transform as FND-000001, applied to the trades lookup: a `?` placeholder and the value passed as a parameter. This is the pattern's second use, which is the reuse the library exists for.",
+  "left_alone": [
+    "list_accounts_sorted is an identifier injection and needs a different fix"
+  ],
+  "test_source": "\"\"\"Regression test for FND-000002 - SQL injection in find_trades_by_account.\"\"\"\n\nfrom ledger import db\n\n\ndef conn():\n    return db.bootstrap(db.connect())\n\n\ndef test_quote_in_account_is_data_not_syntax():\n    assert db.find_trades_by_account(conn(), \"' OR '1'='1\") == []\n\n\ndef test_legitimate_quote_still_matches_trades():\n    rows = db.find_trades_by_account(conn(), \"O'Brien Holdings\")\n    assert len(rows) == 1 and rows[0][\"symbol\"] == \"MSFT\"\n"
+}

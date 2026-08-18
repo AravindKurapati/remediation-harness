@@ -1,0 +1,5 @@
+{
+  "verdict": "approve",
+  "objections": [],
+  "reasoning": "The allowlist is the correct pattern for an identifier position, and the mapping returns its own literal rather than the caller's key, so no caller string reaches the query even on a key collision. The refusal test fails against the unpatched code and the ordering test would catch the `ORDER BY ?` regression from round 1."
+}

@@ -1,0 +1,11 @@
+{
+  "diff": "--- a/ledger/db.py\n+++ b/ledger/db.py\n@@ -5,11 +5,13 @@\n \"\"\"\n \n import hashlib\n+import os\n import sqlite3\n \n-# FINDING: hardcoded credential (CWE-798)\n-DB_PASSWORD = \"Tr4d3S3ttl3m3nt!2026\"\n-DB_DSN = \"postgresql://ledger_svc:Tr4d3S3ttl3m3nt!2026@db.internal:5432/ledger\"\n+DB_PASSWORD = os.environ.get(\"LEDGER_DB_PASSWORD\", \"\")\n+DB_DSN = os.environ.get(\n+    \"LEDGER_DB_DSN\",\n+    \"postgresql://ledger_svc@db.internal:5432/ledger\")\n \n \n def connect(path=\":memory:\"):\n",
+  "pattern_id": null,
+  "test_name": "test_no_credential_literal_in_source",
+  "explanation": "The same fix as FND-000004 - the two findings are the same secret in two places, which the redactor confirmed by producing the same token for both. One patch closes both.",
+  "left_alone": [
+    "The leaked password stays valid until someone rotates it - an ops task",
+    "It is also in git history; this patch does not rewrite history"
+  ],
+  "test_source": "\"\"\"Regression test for FND-000004 - hardcoded credential in ledger/db.py.\n\nAsserts a property of the source file rather than of a function: no credential\nliteral is present. That is the only thing that actually proves the leak is gone.\n\"\"\"\n\nimport pathlib\nimport re\n\nSOURCE = pathlib.Path(__file__).resolve().parents[1] / \"ledger\" / \"db.py\"\n\n\ndef test_no_credential_literal_in_source():\n    text = SOURCE.read_text(encoding=\"utf-8\")\n    assert not re.search(r'(?i)(?<![A-Za-z])(password|dsn|secret)\\s*=\\s*\"[^\"]{8,}\"', text)\n\n\ndef test_credentials_come_from_the_environment():\n    text = SOURCE.read_text(encoding=\"utf-8\")\n    assert \"os.environ\" in text\n"
+}

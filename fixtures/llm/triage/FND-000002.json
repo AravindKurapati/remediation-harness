@@ -1,0 +1,7 @@
+{
+  "category": "injection",
+  "cwe": "CWE-89",
+  "root_cause": "The `account` parameter reaches find_trades_by_account from an HTTP query string via service.trade_lookup and is concatenated into the SELECT text. Same defect as the accounts lookup, different table.",
+  "confidence_score": 0.93,
+  "reasoning": "Identical shape to the accounts query: request parameter, direct concatenation, value position in a WHERE comparison."
+}

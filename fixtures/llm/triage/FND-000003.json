@@ -1,0 +1,7 @@
+{
+  "category": "injection",
+  "cwe": "CWE-89",
+  "root_cause": "The `sort` parameter chooses an ORDER BY column and is concatenated into the statement. The token lands in an identifier position, not a value position, so a placeholder cannot bind it.",
+  "confidence_score": 0.9,
+  "reasoning": "Confident it is injectable. Flagging the shape explicitly because the obvious parameterization fix cannot work for an identifier and would produce ORDER BY ? silently sorting on a constant."
+}

@@ -1,0 +1,9 @@
+{
+  "verdict": "reject",
+  "objections": [
+    "A placeholder binds a VALUE and cannot name a column. `ORDER BY ?` is not parameterized sorting - SQLite accepts it and sorts every row by the same constant, so the ordering silently disappears while the query still succeeds.",
+    "The regression test only asserts the row count, which is unchanged by the broken ordering. It would pass against this patch, against the unpatched code, and against any other wrong fix. It proves nothing.",
+    "This finding is identifier-injection, so the applicable approved pattern is `sqli-python-identifier-allowlist`, not the parameterization pattern that was reused."
+  ],
+  "reasoning": "The right pattern for the wrong shape. Parameterization cannot fix an identifier position, and the test chosen would not have caught that."
+}
