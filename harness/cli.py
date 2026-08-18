@@ -332,6 +332,35 @@ def cmd_run(a) -> None:
     cmd_validate(a)
     _auto_close(store, a)
     cmd_report(a)
+    _library_note()
+
+
+def _library_note() -> None:
+    """Say what landed in the library and that nobody has reviewed it yet.
+
+    Stage 9 writes candidate patterns into the working tree on purpose - the spec
+    requires that new patterns "only enter the library through Security Engineering
+    review", so an uncommitted change awaiting a human IS the review gate. Without
+    this line the run looks like it dirtied your checkout for no reason.
+    """
+    import json
+    index = os.path.join(library_dir(), "index.json")
+    if not os.path.exists(index):
+        return
+    doc = json.load(open(index, encoding="utf-8"))
+    cands = [p["id"] for p in doc.get("patterns", []) if p.get("status") == "candidate"]
+    rejects = len(doc.get("rejections", []))
+    if not cands and not rejects:
+        return
+    say("")
+    if cands:
+        say(f"  library: {len(cands)} candidate pattern(s) written to your working tree, "
+            f"unreviewed and NOT retrievable:")
+        for c in cands:
+            say(f"      {c}")
+        say(f"      review, then `harness library --promote <id>` and commit.")
+    if rejects:
+        say(f"  library: {rejects} recorded rejection(s) - what a reviewer refused, and why.")
 
 
 def _auto_review(store: RunStore, a) -> None:
