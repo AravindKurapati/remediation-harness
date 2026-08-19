@@ -4,10 +4,6 @@ Scanners now find vulnerabilities far faster than anyone can fix them. Remediati
 the bottleneck — and the obvious answer, letting a model write the patches, is the one
 no regulated business can accept without proof.
 
-**A harness is the machinery around the model that makes its output trustworthy:**
-what context goes in, what shape has to come back, what gates it has to pass, who is
-allowed to say yes, and what gets written down. The model is the smallest part of it.
-
 This harness takes security findings and produces **fixes that a named human approved
 and a machine proved**. A finding does not close because a diff was merged; it closes
 when the originating scanner was re-run against the patched code and no longer fires,
@@ -34,13 +30,28 @@ library/          approved fix patterns — the reusable asset that compounds
 samples/          deliberately vulnerable apps, so the demo fixes real code
 fixtures/         recorded scanner output and model responses
 tools/            the re-scan gate, and a checker for the traceability matrix
-docs/             specification · architecture · traceability · walkthrough
+docs/             specification · architecture · traceability
 runs/             per-invocation state: findings, evidence, audit log
 ```
 
 **The run directory is the whole state.** Each stage reads it and writes to it, so you
 can run one stage, open the files, and run the next. There is nothing held in memory
 between them and nothing hidden.
+
+### Stack
+
+Python 3.12, and two dependencies: **PyYAML** for the config files and **pytest** for
+the tests. Nothing else is required to run it.
+
+State is JSON and JSONL files on disk — no database. The dashboard is one HTML file
+with no framework and no build step, served by the standard library's `http.server`.
+Model access is an interface with three implementations, and the default one replays
+recorded responses, so the pipeline runs with no API key and no network.
+
+That is a deliberate choice rather than a limitation. This is an accelerator meant to
+be dropped into environments with their own approved model endpoints, their own CI,
+and a third-party risk review to clear first. Every dependency it carries is a
+dependency a client's security team has to approve.
 
 ---
 
@@ -101,11 +112,6 @@ Every stage also runs on its own — `ingest`, `cluster`, `triage`, `propose`,
 | 9 | learn | closed **and rejected** findings | the pattern library grows; the fix is suggested to the family |
 | 10 | report | the audit log | seven programme KPIs, derived rather than estimated |
 
-**Stage 2 is where the money is.** A backlog in the thousands is not a thousand
-problems — it is a few hundred problems repeated. Fix the family lead, and the rest
-inherit a proven transform. **Stage 9 is why it compounds:** every approved fix makes
-the next occurrence of that bug cheaper than the last.
-
 ---
 
 ## The four rules it will not bend
@@ -161,7 +167,6 @@ worse than not having one.
 | [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) | the requirement this is built against (de-identified) |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | the data flow, and the reasoning behind each design choice |
 | [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md) | requirement → code, and what is not built |
-| [`docs/WALKTHROUGH.md`](docs/WALKTHROUGH.md) | per module: what it does, why it is built that way, and the failures that shaped it |
 
 ---
 

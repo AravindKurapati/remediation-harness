@@ -10,3 +10,6 @@ venv/
 .idea/
 .vscode/
 *.pdf
+
+# Private working notes, not a deliverable.
+docs/WALKTHROUGH.md
