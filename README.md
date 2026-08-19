@@ -1,8 +1,5 @@
 # remediation-harness
 
-Scanners now find vulnerabilities far faster than anyone can fix them. Remediation is
-the bottleneck — and the obvious answer, letting a model write the patches, is the one
-no regulated business can accept without proof.
 
 This harness takes security findings and produces **fixes that a named human approved
 and a machine proved**. A finding does not close because a diff was merged; it closes
